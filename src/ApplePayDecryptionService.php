@@ -19,7 +19,7 @@ use Psr\Log\NullLogger;
 
 /**
  * Apple Pay Decryption Service
- * 
+ *
  * Main service class that orchestrates the decryption process
  * using specialized components for each step.
  */
@@ -39,7 +39,7 @@ class ApplePayDecryptionService
         ?LoggerInterface $logger = null
     ) {
         $this->logger = $logger ?? new NullLogger();
-        
+
         // Initialize all components
         $this->ecdhKeyAgreement = new EcdhKeyAgreement($this->logger);
         $this->kdf = new KeyDerivationFunction($this->logger, $this->config->merchantId);
@@ -48,7 +48,7 @@ class ApplePayDecryptionService
         $this->parser = new TokenDataParser($this->logger);
         $this->tokenValidator = new TokenValidator();
         $this->systemValidator = new SystemValidator();
-        
+
         // Validate system requirements
         $this->systemValidator->validateSystemRequirementsStrict();
     }
@@ -71,13 +71,21 @@ class ApplePayDecryptionService
         // Validate payment data structure
         $this->tokenValidator->validatePaymentData($paymentData);
 
+        // These fields are guaranteed to exist and be strings after validation
+        assert(is_string($paymentData['version']));
+        assert(is_array($paymentData['header']));
+        assert(is_string($paymentData['header']['transactionId']));
+        
+        $version = $paymentData['version'];
+        $transactionId = $paymentData['header']['transactionId'];
+
         $this->logger->info('Apple Pay decryption started', [
-            'version' => $paymentData['version'],
-            'transaction_id' => $paymentData['header']['transactionId'] ?? 'unknown'
+            'version' => $version,
+            'transaction_id' => $transactionId
         ]);
 
         // Validate token version
-        $this->tokenValidator->validateTokenVersion($paymentData['version']);
+        $this->tokenValidator->validateTokenVersion($version);
 
         return $this->performECDecryption($paymentData);
     }
@@ -139,7 +147,7 @@ class ApplePayDecryptionService
     {
         $issues = $this->config->validate();
         $systemIssues = $this->systemValidator->validateSystemRequirements();
-        
+
         return array_merge($issues, $systemIssues);
     }
 }

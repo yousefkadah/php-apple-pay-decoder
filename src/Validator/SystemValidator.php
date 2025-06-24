@@ -8,7 +8,7 @@ use YousefKadah\ApplePayDecoder\Exceptions\InvalidConfigurationException;
 
 /**
  * System Requirements Validator
- * 
+ *
  * Validates system requirements and configuration for Apple Pay decryption.
  */
 class SystemValidator
@@ -39,7 +39,7 @@ class SystemValidator
     public function validateSystemRequirementsStrict(): void
     {
         $issues = $this->validateSystemRequirements();
-        
+
         if (!empty($issues)) {
             throw new InvalidConfigurationException('System requirements not met: ' . implode(', ', $issues));
         }

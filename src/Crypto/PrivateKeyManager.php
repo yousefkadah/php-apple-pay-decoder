@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Private Key Manager
- * 
+ *
  * Handles loading and management of merchant private keys.
  */
 class PrivateKeyManager

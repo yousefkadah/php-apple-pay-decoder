@@ -33,10 +33,56 @@ composer require yousefkadah/apple-pay-decoder
 
 ## Quick Start
 
+### Method 1: Using the Facade (Easiest)
+
 ```php
 <?php
 
-use YousefKadah\ApplePayDecoder\ApplePayDecoder;
+use YousefKadah\ApplePayDecoder\Facade\ApplePay;
+
+// One-time decryption
+$decryptedData = ApplePay::decrypt(
+    $paymentToken,
+    'merchant.com.yourcompany.app',
+    '/path/to/merchant_certificate.pem',
+    '/path/to/merchant_private_key.pem'
+);
+
+// Or configure once, use multiple times
+ApplePay::configure(
+    'merchant.com.yourcompany.app',
+    '/path/to/merchant_certificate.pem',
+    '/path/to/merchant_private_key.pem'
+);
+
+$decryptedData = ApplePay::quickDecrypt($paymentToken);
+```
+
+### Method 2: Using Environment Variables
+
+```php
+<?php
+
+use YousefKadah\ApplePayDecoder\Facade\ApplePay;
+
+// Set environment variables
+$_ENV['APPLE_PAY_MERCHANT_ID'] = 'merchant.com.yourcompany.app';
+$_ENV['APPLE_PAY_CERT_PATH'] = '/path/to/merchant_certificate.pem';
+$_ENV['APPLE_PAY_KEY_PATH'] = '/path/to/merchant_private_key.pem';
+
+// Configure from environment
+ApplePay::configureFromEnvironment();
+
+// Use it
+$decryptedData = ApplePay::quickDecrypt($paymentToken);
+```
+
+### Method 3: Using the Service Class Directly
+
+```php
+<?php
+
+use YousefKadah\ApplePayDecoder\ApplePayDecryptionService;
 use YousefKadah\ApplePayDecoder\Config\MerchantConfig;
 
 // Configure your merchant credentials
@@ -46,34 +92,65 @@ $config = new MerchantConfig(
     privateKeyPath: '/path/to/merchant_private_key.pem'
 );
 
-// Create decoder instance
-$decoder = new ApplePayDecoder($config);
+// Create service instance
+$service = new ApplePayDecryptionService($config);
 
-// Your Apple Pay token data
-$paymentToken = [
-    'version' => 'EC_v1',
-    'data' => 'base64-encoded-encrypted-data...',
-    'signature' => 'base64-encoded-signature...',
-    'header' => [
-        'ephemeralPublicKey' => 'base64-encoded-key...',
-        'publicKeyHash' => 'base64-encoded-hash...',
-        'transactionId' => 'hex-transaction-id...'
-    ]
-];
+// Decrypt the payment token
+$decryptedData = $service->decrypt($paymentToken);
 
-try {
-    // Decrypt the payment token
-    $decryptedData = $decoder->decrypt($paymentToken);
-    
-    // Access decrypted payment information
-    echo "Card Number: " . $decryptedData['applicationPrimaryAccountNumber'];
-    echo "Expiry: " . $decryptedData['applicationExpirationDate'];
-    echo "Amount: " . $decryptedData['transactionAmount'];
-    echo "Currency: " . $decryptedData['currencyCode'];
-    
-} catch (\Exception $e) {
-    echo "Decryption failed: " . $e->getMessage();
+// Access decrypted payment information
+echo "Card Number: " . $decryptedData['applicationPrimaryAccountNumber'];
+echo "Expiry: " . $decryptedData['applicationExpirationDate'];
+echo "Amount: " . $decryptedData['transactionAmount'];
+echo "Currency: " . $decryptedData['currencyCode'];
+```
+
+## Laravel Integration
+
+For Laravel applications, you can easily integrate the facade:
+
+```php
+<?php
+
+// In a service provider or controller
+use YousefKadah\ApplePayDecoder\Facade\ApplePay;
+
+class PaymentController extends Controller
+{
+    public function processApplePayment(Request $request)
+    {
+        // Configure once in service provider
+        ApplePay::configure(
+            config('applepay.merchant_id'),
+            config('applepay.cert_path'),
+            config('applepay.key_path')
+        );
+
+        // Use in controllers
+        $paymentData = $request->get('paymentData');
+        $decryptedData = ApplePay::quickDecrypt($paymentData);
+        
+        // Process payment...
+        return response()->json(['status' => 'success']);
+    }
 }
+```
+
+## Configuration Management
+
+### Environment Variables
+Set these environment variables for easy configuration:
+
+```bash
+APPLE_PAY_MERCHANT_ID=merchant.com.yourcompany.app
+APPLE_PAY_CERT_PATH=/path/to/merchant_certificate.pem
+APPLE_PAY_KEY_PATH=/path/to/merchant_private_key.pem
+```
+
+Then use:
+```php
+ApplePay::configureFromEnvironment();
+$result = ApplePay::quickDecrypt($paymentToken);
 ```
 
 ## Advanced Usage
@@ -82,40 +159,34 @@ try {
 
 ```php
 use Psr\Log\LoggerInterface;
+use YousefKadah\ApplePayDecoder\ApplePayDecryptionService;
 
-$decoder = new ApplePayDecoder($config, $logger);
+$service = new ApplePayDecryptionService($config, $logger);
 ```
 
-### Validation Only
+### Legacy Compatibility
 
 ```php
-// Validate configuration without decrypting
-$issues = $decoder->validateConfiguration();
-if (!empty($issues)) {
-    foreach ($issues as $issue) {
-        echo "Configuration issue: $issue\n";
-    }
-}
+// For backward compatibility, the old ApplePayDecoder still works
+use YousefKadah\ApplePayDecoder\ApplePayDecoder;
+
+$decoder = new ApplePayDecoder($config);
+$result = $decoder->decrypt($paymentToken);
 ```
 
-### Multiple Merchant Support
+### Component Usage (Advanced)
 
 ```php
-// For handling multiple merchant configurations
-$configs = [
-    new MerchantConfig('merchant.primary', '/path/cert1.pem', '/path/key1.pem'),
-    new MerchantConfig('merchant.secondary', '/path/cert2.pem', '/path/key2.pem'),
-];
+// Use individual components for custom implementations
+use YousefKadah\ApplePayDecoder\Crypto\EcdhKeyAgreement;
+use YousefKadah\ApplePayDecoder\Crypto\KeyDerivationFunction;
+use YousefKadah\ApplePayDecoder\Crypto\AesGcmDecryption;
 
-foreach ($configs as $config) {
-    try {
-        $decoder = new ApplePayDecoder($config);
-        $result = $decoder->decrypt($paymentToken);
-        break; // Success with this merchant
-    } catch (\Exception $e) {
-        continue; // Try next merchant
-    }
-}
+$ecdh = new EcdhKeyAgreement($logger);
+$kdf = new KeyDerivationFunction($logger, $merchantId);
+$aes = new AesGcmDecryption($logger);
+
+// Perform individual cryptographic operations...
 ```
 
 ## Decrypted Data Structure

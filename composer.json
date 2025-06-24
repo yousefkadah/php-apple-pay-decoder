@@ -35,7 +35,7 @@
     "scripts": {
         "test": "phpunit",
         "test-coverage": "phpunit --coverage-html coverage",
-        "phpstan": "phpstan analyse src --level=max",
+        "phpstan": "phpstan analyse",
         "cs-check": "phpcs src tests --standard=PSR12",
         "cs-fix": "phpcbf src tests --standard=PSR12"
     },

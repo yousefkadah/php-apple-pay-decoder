@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * AES-GCM Encryption/Decryption Handler
- * 
+ *
  * Handles AES-GCM decryption operations for Apple Pay payment data.
  */
 class AesGcmDecryption

@@ -18,6 +18,8 @@ class MerchantConfig
 
     /**
      * Validate that all required files exist and are readable
+     * 
+     * @return array<string>
      */
     public function validate(): array
     {

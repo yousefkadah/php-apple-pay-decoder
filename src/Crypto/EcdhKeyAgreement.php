@@ -10,7 +10,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * ECDH Key Agreement Handler
- * 
+ *
  * Handles Elliptic Curve Diffie-Hellman key agreement operations
  * for Apple Pay token decryption.
  */

@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Token Data Parser
- * 
+ *
  * Handles parsing and extraction of data from Apple Pay tokens.
  */
 class TokenDataParser
@@ -29,10 +29,27 @@ class TokenDataParser
     {
         $this->logger->debug('Extracting token components');
 
+        // Validate required fields exist and are strings
+        if (!isset($paymentData['header']) || !is_array($paymentData['header'])) {
+            throw new InvalidTokenException('Missing or invalid header field');
+        }
+        if (!isset($paymentData['header']['ephemeralPublicKey']) || !is_string($paymentData['header']['ephemeralPublicKey'])) {
+            throw new InvalidTokenException('Missing or invalid ephemeralPublicKey in header');
+        }
+        if (!isset($paymentData['data']) || !is_string($paymentData['data'])) {
+            throw new InvalidTokenException('Missing or invalid data field');
+        }
+        if (!isset($paymentData['header']['transactionId']) || !is_string($paymentData['header']['transactionId'])) {
+            throw new InvalidTokenException('Missing or invalid transactionId in header');
+        }
+
+        // Now we know the types are correct
+        $header = $paymentData['header'];
+        
         return [
-            'ephemeralPublicKey' => base64_decode($paymentData['header']['ephemeralPublicKey']),
+            'ephemeralPublicKey' => base64_decode($header['ephemeralPublicKey']),
             'encryptedData' => base64_decode($paymentData['data']),
-            'transactionId' => $this->decodeTransactionId($paymentData['header']['transactionId'])
+            'transactionId' => $this->decodeTransactionId($header['transactionId'])
         ];
     }
 
@@ -45,7 +62,7 @@ class TokenDataParser
     {
         $paymentInfo = json_decode($decryptedData, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($paymentInfo)) {
             throw new InvalidTokenException('Failed to parse JSON: ' . json_last_error_msg());
         }
 

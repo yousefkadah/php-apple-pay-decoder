@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace YousefKadah\ApplePayDecoder\Crypto;
 
+use YousefKadah\ApplePayDecoder\Exceptions\CryptographicException;
 use Psr\Log\LoggerInterface;
 
 /**
  * Key Derivation Function Implementation
- * 
+ *
  * Implements the Concat KDF (NIST SP 800-56A) as required by Apple Pay
  * for deriving encryption keys from shared secrets.
  */
@@ -48,7 +49,12 @@ class KeyDerivationFunction
     {
         $hash = hash_init('sha256');
         hash_update($hash, pack('H*', '00000001')); // Counter: 00 00 00 01
-        hash_update($hash, hex2bin($sharedSecret)); // Shared secret as binary
+        
+        $binarySecret = hex2bin($sharedSecret); // Shared secret as binary
+        if ($binarySecret === false) {
+            throw new CryptographicException('Invalid hex string in shared secret');
+        }
+        hash_update($hash, $binarySecret);
         hash_update($hash, $otherInfo);
 
         $derivedKey = hash_final($hash, true);
