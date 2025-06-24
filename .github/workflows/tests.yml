@@ -63,6 +63,15 @@ jobs:
         extensions: openssl, json
         coverage: xdebug
 
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-8.2-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-8.2-
+
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
@@ -73,4 +82,4 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         files: ./coverage.xml
-        fail_ci_if_error: true
+        fail_ci_if_error: false
