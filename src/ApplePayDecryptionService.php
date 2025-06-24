@@ -14,6 +14,7 @@ use YousefKadah\ApplePayDecoder\Validator\TokenValidator;
 use YousefKadah\ApplePayDecoder\Validator\SystemValidator;
 use YousefKadah\ApplePayDecoder\Exceptions\ApplePayDecryptionException;
 use YousefKadah\ApplePayDecoder\Exceptions\InvalidConfigurationException;
+use YousefKadah\ApplePayDecoder\Exceptions\InvalidTokenException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -75,10 +76,16 @@ class ApplePayDecryptionService
 
         $this->logger->info('Apple Pay decryption started', [
             'version' => $paymentData['version'],
-            'transaction_id' => $paymentData['header']['transactionId'] ?? 'unknown'
+            'transaction_id' => isset($paymentData['header']) && is_array($paymentData['header'])
+                && isset($paymentData['header']['transactionId']) && is_string($paymentData['header']['transactionId'])
+                ? $paymentData['header']['transactionId']
+                : 'unknown'
         ]);
 
         // Validate token version
+        if (!is_string($paymentData['version'])) {
+            throw new InvalidTokenException('Token version must be a string');
+        }
         $this->tokenValidator->validateTokenVersion($paymentData['version']);
 
         return $this->performECDecryption($paymentData);
