@@ -9,9 +9,20 @@ namespace YousefKadah\ApplePayDecoder\Config;
  */
 class MerchantConfig
 {
-    public string $merchantId;
-    public string $certificatePath;
-    public string $privateKeyPath;
+    /**
+     * @var string
+     */
+    public $merchantId;
+
+    /**
+     * @var string
+     */
+    public $certificatePath;
+
+    /**
+     * @var string
+     */
+    public $privateKeyPath;
 
     public function __construct(
         string $merchantId,

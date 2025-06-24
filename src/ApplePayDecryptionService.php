@@ -26,15 +26,50 @@ use Psr\Log\NullLogger;
  */
 class ApplePayDecryptionService
 {
-    private LoggerInterface $logger;
-    private EcdhKeyAgreement $ecdhKeyAgreement;
-    private KeyDerivationFunction $kdf;
-    private AesGcmDecryption $aesGcm;
-    private PrivateKeyManager $keyManager;
-    private TokenDataParser $parser;
-    private TokenValidator $tokenValidator;
-    private SystemValidator $systemValidator;
-    private MerchantConfig $config;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var EcdhKeyAgreement
+     */
+    private $ecdhKeyAgreement;
+
+    /**
+     * @var KeyDerivationFunction
+     */
+    private $kdf;
+
+    /**
+     * @var AesGcmDecryption
+     */
+    private $aesGcm;
+
+    /**
+     * @var PrivateKeyManager
+     */
+    private $keyManager;
+
+    /**
+     * @var TokenDataParser
+     */
+    private $parser;
+
+    /**
+     * @var TokenValidator
+     */
+    private $tokenValidator;
+
+    /**
+     * @var SystemValidator
+     */
+    private $systemValidator;
+
+    /**
+     * @var MerchantConfig
+     */
+    private $config;
 
     public function __construct(
         MerchantConfig $config,
