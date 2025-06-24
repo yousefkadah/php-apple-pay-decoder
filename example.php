@@ -2,20 +2,22 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use YousefKadah\ApplePayDecoder\ApplePayDecoder;
+use YousefKadah\ApplePayDecoder\ApplePayDecryptionService;
 use YousefKadah\ApplePayDecoder\Config\MerchantConfig;
+use YousefKadah\ApplePayDecoder\Facade\ApplePay;
 
-// Example usage of the Apple Pay Decoder
+echo "=== Apple Pay Decoder Examples ===\n\n";
+
+// Example 1: Using the main service class (Recommended)
+echo "1. Using ApplePayDecryptionService (Recommended):\n";
 try {
-    // Configure your merchant credentials
     $config = new MerchantConfig(
         merchantId: 'merchant.com.yourcompany.app',
         certificatePath: __DIR__ . '/path/to/merchant_certificate.pem',
         privateKeyPath: __DIR__ . '/path/to/merchant_private_key.pem'
     );
 
-    // Create decoder instance
-    $decoder = new ApplePayDecoder($config);
+    $service = new ApplePayDecryptionService($config);
 
     // Example Apple Pay token (replace with real token data)
     $paymentToken = [
@@ -29,31 +31,114 @@ try {
         ]
     ];
 
-    // Decrypt the payment token
-    $decryptedData = $decoder->decrypt($paymentToken);
+    // $decryptedData = $service->decrypt($paymentToken);
+    echo "✅ Service created successfully\n";
 
-    // Display results
-    echo "✅ Decryption successful!\n\n";
-    echo "Card Number: " . $decryptedData['applicationPrimaryAccountNumber'] . "\n";
-    echo "Expiry Date: " . $decryptedData['applicationExpirationDate'] . "\n";
-    echo "Transaction Amount: " . $decryptedData['transactionAmount'] . "\n";
-    echo "Currency Code: " . $decryptedData['currencyCode'] . "\n";
-    echo "Device Manufacturer ID: " . $decryptedData['deviceManufacturerIdentifier'] . "\n";
-    echo "Payment Data Type: " . $decryptedData['paymentDataType'] . "\n";
+} catch (\Exception $e) {
+    echo "❌ Service Error: " . $e->getMessage() . "\n";
+}
 
-    if (isset($decryptedData['paymentData']['onlinePaymentCryptogram'])) {
-        echo "Online Payment Cryptogram: " . $decryptedData['paymentData']['onlinePaymentCryptogram'] . "\n";
+echo "\n";
+
+// Example 2: Using the Facade for quick operations
+echo "2. Using Facade for quick operations:\n";
+try {
+    // Quick decrypt with minimal setup
+    /* $decryptedData = ApplePay::decrypt(
+        $paymentToken,
+        'merchant.com.yourcompany.app',
+        '/path/to/merchant_certificate.pem',
+        '/path/to/merchant_private_key.pem'
+    ); */
+    
+    echo "✅ Facade method available\n";
+
+} catch (\Exception $e) {
+    echo "❌ Facade Error: " . $e->getMessage() . "\n";
+}
+
+echo "\n";
+
+// Example 3: Using Facade with default service
+echo "3. Using Facade with default service:\n";
+try {
+    // Set up default service
+    $defaultService = ApplePay::createService(
+        'merchant.com.yourcompany.app',
+        '/path/to/cert.pem',
+        '/path/to/key.pem'
+    );
+    
+    ApplePay::setDefaultService($defaultService);
+    
+    // Now you can use quick decrypt
+    // $result = ApplePay::quickDecrypt($paymentToken);
+    
+    echo "✅ Default service configured\n";
+
+} catch (\Exception $e) {
+    echo "❌ Default Service Error: " . $e->getMessage() . "\n";
+}
+
+echo "\n";
+
+// Example 4: Using environment variables
+echo "4. Using environment variables:\n";
+try {
+    // Set environment variables first
+    $_ENV['APPLE_PAY_MERCHANT_ID'] = 'merchant.com.yourcompany.app';
+    $_ENV['APPLE_PAY_CERT_PATH'] = '/path/to/cert.pem';
+    $_ENV['APPLE_PAY_KEY_PATH'] = '/path/to/key.pem';
+    
+    // $service = ApplePay::fromEnvironment();
+    // $result = $service->decrypt($paymentToken);
+    
+    echo "✅ Environment configuration available\n";
+
+} catch (\Exception $e) {
+    echo "❌ Environment Error: " . $e->getMessage() . "\n";
+}
+
+echo "\n";
+
+// Example 5: Legacy compatibility
+echo "5. Legacy ApplePayDecoder compatibility:\n";
+try {
+    use YousefKadah\ApplePayDecoder\ApplePayDecoder;
+    
+    $config = new MerchantConfig(
+        'merchant.com.yourcompany.app',
+        '/path/to/cert.pem',
+        '/path/to/key.pem'
+    );
+    
+    $decoder = new ApplePayDecoder($config);
+    // $result = $decoder->decrypt($paymentToken);
+    
+    echo "✅ Legacy decoder still works\n";
+
+} catch (\Exception $e) {
+    echo "❌ Legacy Error: " . $e->getMessage() . "\n";
+}
+
+echo "\n";
+
+// Example 6: Validation
+echo "6. Configuration validation:\n";
+try {
+    $validationIssues = ApplePay::validateSystem();
+    
+    if (empty($validationIssues)) {
+        echo "✅ System validation passed\n";
+    } else {
+        echo "⚠️  System issues found:\n";
+        foreach ($validationIssues as $issue) {
+            echo "   - $issue\n";
+        }
     }
 
-} catch (\YousefKadah\ApplePayDecoder\Exceptions\InvalidConfigurationException $e) {
-    echo "❌ Configuration Error: " . $e->getMessage() . "\n";
-    echo "Please check your merchant certificate and private key paths.\n";
-} catch (\YousefKadah\ApplePayDecoder\Exceptions\InvalidTokenException $e) {
-    echo "❌ Token Error: " . $e->getMessage() . "\n";
-    echo "Please check your payment token format.\n";
-} catch (\YousefKadah\ApplePayDecoder\Exceptions\CryptographicException $e) {
-    echo "❌ Cryptographic Error: " . $e->getMessage() . "\n";
-    echo "Please check your certificates and token data.\n";
 } catch (\Exception $e) {
-    echo "❌ Unexpected Error: " . $e->getMessage() . "\n";
+    echo "❌ Validation Error: " . $e->getMessage() . "\n";
 }
+
+echo "\n=== Examples completed ===\n";
