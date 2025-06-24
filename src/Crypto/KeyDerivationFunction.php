@@ -16,8 +16,8 @@ use Psr\Log\LoggerInterface;
 class KeyDerivationFunction
 {
     public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly string $merchantId
+        private LoggerInterface $logger,
+        private string $merchantId
     ) {
     }
 

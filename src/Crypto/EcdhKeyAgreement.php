@@ -16,9 +16,12 @@ use Psr\Log\LoggerInterface;
  */
 class EcdhKeyAgreement
 {
+    private LoggerInterface $logger;
+
     public function __construct(
-        private readonly LoggerInterface $logger
+        LoggerInterface $logger
     ) {
+        $this->logger = $logger;
     }
 
     /**

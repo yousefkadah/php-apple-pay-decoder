@@ -25,19 +25,21 @@ use Psr\Log\NullLogger;
  */
 class ApplePayDecryptionService
 {
-    private readonly LoggerInterface $logger;
-    private readonly EcdhKeyAgreement $ecdhKeyAgreement;
-    private readonly KeyDerivationFunction $kdf;
-    private readonly AesGcmDecryption $aesGcm;
-    private readonly PrivateKeyManager $keyManager;
-    private readonly TokenDataParser $parser;
-    private readonly TokenValidator $tokenValidator;
-    private readonly SystemValidator $systemValidator;
+    private LoggerInterface $logger;
+    private EcdhKeyAgreement $ecdhKeyAgreement;
+    private KeyDerivationFunction $kdf;
+    private AesGcmDecryption $aesGcm;
+    private PrivateKeyManager $keyManager;
+    private TokenDataParser $parser;
+    private TokenValidator $tokenValidator;
+    private SystemValidator $systemValidator;
+    private MerchantConfig $config;
 
     public function __construct(
-        private readonly MerchantConfig $config,
+        MerchantConfig $config,
         ?LoggerInterface $logger = null
     ) {
+        $this->config = $config;
         $this->logger = $logger ?? new NullLogger();
 
         // Initialize all components
@@ -71,21 +73,13 @@ class ApplePayDecryptionService
         // Validate payment data structure
         $this->tokenValidator->validatePaymentData($paymentData);
 
-        // These fields are guaranteed to exist and be strings after validation
-        assert(is_string($paymentData['version']));
-        assert(is_array($paymentData['header']));
-        assert(is_string($paymentData['header']['transactionId']));
-
-        $version = $paymentData['version'];
-        $transactionId = $paymentData['header']['transactionId'];
-
         $this->logger->info('Apple Pay decryption started', [
-            'version' => $version,
-            'transaction_id' => $transactionId
+            'version' => $paymentData['version'],
+            'transaction_id' => $paymentData['header']['transactionId'] ?? 'unknown'
         ]);
 
         // Validate token version
-        $this->tokenValidator->validateTokenVersion($version);
+        $this->tokenValidator->validateTokenVersion($paymentData['version']);
 
         return $this->performECDecryption($paymentData);
     }

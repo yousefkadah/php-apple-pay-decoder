@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 class PrivateKeyManager
 {
     public function __construct(
-        private readonly LoggerInterface $logger
+        private LoggerInterface $logger
     ) {
     }
 

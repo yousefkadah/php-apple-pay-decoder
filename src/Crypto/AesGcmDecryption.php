@@ -15,7 +15,7 @@ use Psr\Log\LoggerInterface;
 class AesGcmDecryption
 {
     public function __construct(
-        private readonly LoggerInterface $logger
+        private LoggerInterface $logger
     ) {
     }
 

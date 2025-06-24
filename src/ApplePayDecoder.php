@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
  */
 class ApplePayDecoder
 {
-    private readonly ApplePayDecryptionService $service;
+    private ApplePayDecryptionService $service;
 
     public function __construct(
         MerchantConfig $config,
