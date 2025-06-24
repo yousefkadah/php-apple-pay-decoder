@@ -1,0 +1,11 @@
+level: max
+paths:
+    - src
+tmpDir: build/phpstan
+checkOccurredErrors: false
+checkUndefinedVariables: true
+checkTooWideReturnTypesInProtectedAndPublicMethods: true
+checkUnionTypes: true
+checkExplicitMixedMissingReturn: true
+checkPhpDocMissingReturn: true
+reportUnmatchedIgnoredErrors: true
