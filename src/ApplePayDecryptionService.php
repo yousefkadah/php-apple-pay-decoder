@@ -75,7 +75,7 @@ class ApplePayDecryptionService
         assert(is_string($paymentData['version']));
         assert(is_array($paymentData['header']));
         assert(is_string($paymentData['header']['transactionId']));
-        
+
         $version = $paymentData['version'];
         $transactionId = $paymentData['header']['transactionId'];
 

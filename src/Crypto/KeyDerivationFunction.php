@@ -49,7 +49,7 @@ class KeyDerivationFunction
     {
         $hash = hash_init('sha256');
         hash_update($hash, pack('H*', '00000001')); // Counter: 00 00 00 01
-        
+
         $binarySecret = hex2bin($sharedSecret); // Shared secret as binary
         if ($binarySecret === false) {
             throw new CryptographicException('Invalid hex string in shared secret');

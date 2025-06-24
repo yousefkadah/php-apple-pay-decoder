@@ -29,23 +29,27 @@ class TokenDataParser
     {
         $this->logger->debug('Extracting token components');
 
-        // Validate required fields exist and are strings
+        // Extract header with type validation
         if (!isset($paymentData['header']) || !is_array($paymentData['header'])) {
-            throw new InvalidTokenException('Missing or invalid header field');
+            throw new InvalidTokenException('Missing or invalid header in payment data');
         }
-        if (!isset($paymentData['header']['ephemeralPublicKey']) || !is_string($paymentData['header']['ephemeralPublicKey'])) {
+        $header = $paymentData['header'];
+
+        // Validate ephemeralPublicKey
+        if (!isset($header['ephemeralPublicKey']) || !is_string($header['ephemeralPublicKey'])) {
             throw new InvalidTokenException('Missing or invalid ephemeralPublicKey in header');
         }
+
+        // Validate data
         if (!isset($paymentData['data']) || !is_string($paymentData['data'])) {
-            throw new InvalidTokenException('Missing or invalid data field');
+            throw new InvalidTokenException('Missing or invalid data in payment data');
         }
-        if (!isset($paymentData['header']['transactionId']) || !is_string($paymentData['header']['transactionId'])) {
+
+        // Validate transactionId
+        if (!isset($header['transactionId']) || !is_string($header['transactionId'])) {
             throw new InvalidTokenException('Missing or invalid transactionId in header');
         }
 
-        // Now we know the types are correct
-        $header = $paymentData['header'];
-        
         return [
             'ephemeralPublicKey' => base64_decode($header['ephemeralPublicKey']),
             'encryptedData' => base64_decode($paymentData['data']),
@@ -62,8 +66,13 @@ class TokenDataParser
     {
         $paymentInfo = json_decode($decryptedData, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($paymentInfo)) {
+        if (json_last_error() !== JSON_ERROR_NONE) {
             throw new InvalidTokenException('Failed to parse JSON: ' . json_last_error_msg());
+        }
+
+        // Ensure we have a valid array
+        if (!is_array($paymentInfo)) {
+            throw new InvalidTokenException('Decrypted data is not a valid JSON object');
         }
 
         $this->logger->debug('Payment data parsed successfully', [
