@@ -28,10 +28,6 @@ class TokenValidator
         }
 
         $requiredHeader = ['publicKeyHash', 'ephemeralPublicKey', 'transactionId'];
-        if (!isset($paymentData['header']) || !is_array($paymentData['header'])) {
-            throw new InvalidTokenException("Missing or invalid header field");
-        }
-
         foreach ($requiredHeader as $field) {
             if (!isset($paymentData['header'][$field])) {
                 throw new InvalidTokenException("Missing required header field: {$field}");
@@ -39,12 +35,8 @@ class TokenValidator
         }
 
         // Only support EC_v1 (RSA_v1 is deprecated)
-        if (!isset($paymentData['version']) || !is_string($paymentData['version'])) {
-            throw new InvalidTokenException("Missing or invalid version field");
-        }
-
         if ($paymentData['version'] !== 'EC_v1') {
-            throw new InvalidTokenException("Unsupported version: " . $paymentData['version']);
+            throw new InvalidTokenException("Unsupported version: {$paymentData['version']}");
         }
     }
 

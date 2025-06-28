@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace YousefKadah\ApplePayDecoder\Crypto;
 
-use YousefKadah\ApplePayDecoder\Exceptions\CryptographicException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -16,8 +15,8 @@ use Psr\Log\LoggerInterface;
 class KeyDerivationFunction
 {
     public function __construct(
-        private LoggerInterface $logger,
-        private string $merchantId
+        private readonly LoggerInterface $logger,
+        private readonly string $merchantId
     ) {
     }
 
@@ -49,12 +48,7 @@ class KeyDerivationFunction
     {
         $hash = hash_init('sha256');
         hash_update($hash, pack('H*', '00000001')); // Counter: 00 00 00 01
-
-        $binarySecret = hex2bin($sharedSecret); // Shared secret as binary
-        if ($binarySecret === false) {
-            throw new CryptographicException('Invalid hex string in shared secret');
-        }
-        hash_update($hash, $binarySecret);
+        hash_update($hash, hex2bin($sharedSecret)); // Shared secret as binary
         hash_update($hash, $otherInfo);
 
         $derivedKey = hash_final($hash, true);
